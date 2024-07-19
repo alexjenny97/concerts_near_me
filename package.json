@@ -1,0 +1,6 @@
+{
+    "name": "concerts_near_me",
+    "version": "0.0.1", 
+    "description": "Test", 
+    "main": "index.js"
+  }
