@@ -42,9 +42,7 @@ logger = logging.getLogger('my_logger')
 url_mapping = {'fiddlers green': 'https://www.fiddlersgreenamp.com/calendar/'
     }
 
-schema_mapping = {'fiddlers green': {'main_div': 'c-axs-event-card__wrapper','ticket_div': 'BUY TICKETS', 
-                                     'album_cover': 'c-axs-event-card__image', 'extra_info': 'c-axs-event-card__supporting-text', 
-                                     'Artist_or_event_name': 'c-axs-event-card__title', 'date': 'c-axs-event-card__date', 'link_for_tickets': 'c-axs-event-card__info'}}
+schema_mapping = {'fiddlers green': {'main_div': 'c-axs-event-card__wrapper','ticket_div': 'BUY TICKETS', 'poster_div': 'u-img-respond'}}
 
 def connectToSite(venue, venue_url):
      # try to connect to venue website
@@ -67,7 +65,6 @@ def connectToSite(venue, venue_url):
 
 def getEventDetails(event, venue):
     try:
-        if event.text: 
             event_text = event.text.split("\n")
             
             details = {}
@@ -76,7 +73,7 @@ def getEventDetails(event, venue):
             # details['price'] = ''
             details['show_time'] = event_text[3]
             details['ticket_link'] = event.find_element(By.PARTIAL_LINK_TEXT, schema_mapping[venue]['ticket_div']).get_attribute('href')
-            # details['tour_poster'] = ''
+            details['tour_poster'] = event.find_element(By.CSS_SELECTOR, f"img[class*='{schema_mapping[venue]['poster_div']}']").get_attribute('src')
             details['venue'] = venue
 
 
@@ -86,19 +83,21 @@ def getEventDetails(event, venue):
 
 def getUpcommingEvents():
     # events is a list of dictionaries
-    # events[x] = {'artist': artist, 'venue': venue, 'date': date, 'show_time' : show_time, 'price' : price, 'ticket_link': ticket_link,
-                                #   'tour_poster': tour_poster}
+    # events[x] = {'artist': artist, 'venue': venue, 'date': date, 'show_time' : show_time, 'price' : price (future update),
+                #  'ticket_link': ticket_link, 'tour_poster': tour_poster}
     events = []
     for venue, venue_url in url_mapping.items():
        try:
         venue_events  = connectToSite(venue=venue, venue_url=venue_url)
         for event in venue_events:
-            if event: 
+            if event.text: 
                 events.append(getEventDetails(event=event, venue=venue))
+            else: 
+                del event
 
        except Exception as e:
         logger.error(f'Error connecting to site due to {e}')
-        
+
     if events:
         logger.info(f'Successfully got events for : {len(events)}')
         return events
