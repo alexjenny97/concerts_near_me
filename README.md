@@ -8,43 +8,60 @@ Many venues and shows happening around Denver make it difficult to easily find r
 - the tour poster
 - a link for tickets
 
-Getting this data via scrolling multiple sites & emails takes much more time than reading one personalized email.
+Getting this data via scrolling multiple sites & emails takes much more time than reading one personalized email. There should be a script to run that will send the formatted details as an email. 
 
-## Solution Summary: 
-Build a process that scrapes relevent show data (listed above & more), cleans & formats the data, then if new events have been found, emails me just the new shows.
-
-## Expected Set Up:
-1. Configure credentials file (not made)
-1. Configure local machine to run script every day
-2. Run program (python main.py) in the virtual enviornment
-3. Recieve first email, save sender
-
-## Expected Workflow:
-1. First email will be large with all current events from all venues in the credentials package
-
-2. Script runs every day at a set time & compiles an email
-
-3. Subsequent emails with be sent on a basis set in the credentials file with new events
-
+## Solution MVP: 
+1. One venue's data will be a proof of concept.
+     - This will set up Selenium, webscraping and connecting to the Gmail API.
+       
+3. Data must include date, time, venue and artist.
+     - Other attributes are acceptable, this is the bare minimum.
+     - **Final MVP includes: date, time, venue, artist, ticket link and a link to the tour poster**
+       
+4. The email must not send duplicate events for consecuitive emails.
+      - Repeating events is not a scaleable solution as the number of venues increases.
 #### Note: If no new events, no email will be sent
 
+
+## Files:
+previous_events.json
+- This tracks the previous events obtained from earlier runs of the process. 
+- This could become enough data to analyze later for things like: favorite venue, cheapest venue, if prices are cheaper during some part of the year, most active areas, ect.
+    
+getting_price.md
+- This is a plan on how to get the price of the tickets. 
+- This was not part of the MVP but may be a later update.
+    
+gmail_creds.json
+- This is the gmail credentials to run the process. 
+- The format neede is:
+- 
+        {"installed":
+              {
+              "client_id":"stuff",
+              "project_id":"stuff",
+              "auth_uri":"stuff",
+              "token_uri":"stuff",
+              "auth_provider_x509_cert_url":"stuff",
+              "client_secret":"stuff",
+              "redirect_uris":["stuff"]
+              }
+        }
+
+
+
+
+
 ## Current Status:
-Program curently gets info from Fiddler's Green Ampitheater and puts what would be the email data into "new_events.json".
+- Program curently gets info from Fiddler's Green Ampitheater and **if not commented out** adds the events to the "previous_events.json" file, then emails the events. Below is a snapshot of an email sent.
+  <img width="722" alt="image" src="https://github.com/user-attachments/assets/f654d4a1-2ec5-40ef-9078-cd7fddaa0af6">
 
-## Next Steps:
-1. Make credentials file
-1. Configure email connection
-1. Add Mission Ballroom as next venue
+- Program stores Gmail credentials and uses them in subsequent runs so the user does not need to allow the program access every run. 
 
-## Additional Details:
-1. Venues must be manually added to script
+## Possible Next Steps:
+1. Next venue: Mission Ballroom.
+2. Add price of general admission ticket into the email.
+3. Connect to Spotify API to bold small artists that are known and might be missed. 
 
-    - More research is required to see if sites are similar enough to make adding a new vennue more streamlined.
-
-    - Not in the project's initial scope to make adding new venues easy
-
-## Possible Improvements:
-- Connect with Spotify for further data gathering
-    - Such as new artists to highlight
 
 
