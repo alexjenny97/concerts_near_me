@@ -1,13 +1,13 @@
 from __future__ import print_function
 import requests
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import logging
 import logging.config
 import json
 import urllib.request, json 
-from requests_html import HTMLSession
+# from requests_html import HTMLSession
 import time 
-import pandas as pd 
+# import pandas as pd 
 from selenium import webdriver
 from selenium.webdriver import Chrome 
 from selenium.webdriver.common.by import By 
@@ -18,6 +18,20 @@ import base64
 from email.mime.text import MIMEText
 from google_auth_oauthlib.flow import InstalledAppFlow
 from requests import HTTPError
+import html
+from email.message import EmailMessage
+from email.utils import make_msgid
+from PIL import Image
+
+import base64
+from email.mime.text import MIMEText
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from requests import HTTPError
+from apiclient.discovery import build
+import os
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 
 # Define the Chrome webdriver options
@@ -155,59 +169,80 @@ def removeDupes(events):
     logger.info(f"Successfully removed old events fom new list")
     return new_events
 
-def formatEmail(events):
-    message = 'Hello! I found some new events to check out!'
-    for event in events:
-        message = message + f"\n <b> {event['artist']} is playing at {event['venue']}! </b> \n \
-                       Details: \n \
-                       Date: {event['date']} at {event['show_time']}\n \
-                       Ticket Linkk: {event['ticket_link']} "
-                    #    Price: {event['price']}\n \
-                    #    Tour Poster: {event['tour_poster']}\n \
-    return message
+def build_service(SCOPES):
+    # """Build a Gmail service object.
+
+    # Args:
+    #     credentials: OAuth 2.0 credentials.
+
+    # Returns:
+    #     Gmail service object.
+    # """
+    from google.oauth2 import service_account
+
+    SERVICE_ACCOUNT_FILE = 'gmail_creds.json'
+
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    http = httplib2.Http()
+    http = credentials.authorize(http)
+    return build('gmail', 'v1', http=http)
+
+def formatMessage(events):
+    try:
+        message = f"Hello! There are some new events you might be inrerested in!\n"
+        for event in events:
+            message = message + f"\n{event['artist']} is playing at {event['venue']} on {event['date']} at {event['show_time']}. \n{event['tour_poster']} \n{event['ticket_link']}\n \n "
+        return message
+
+    except Exception as e:
+        logger.error(f"Failed formatting the email messsage due to {e}")
 
 def sendEmail(events):
-    logger.info(f"Attempting to send email")
-    
-    # format events
-    try:
-        logger.info(f"Formatting email")
-        message_events = formatEmail(events)
-        message_text = str(events)
-    except Exception as e:
-        logger.error(f"Error formatting events due to {e}")
-    
-    try:
-        logger.info(f"Getting config data")
-        with open('email_config.json', 'r') as file:
-            config = json.load(file)
-    except Exception as e:
-        logger.error(f"Error getting email config data due to {e}")
-    
+    if events[0]:
+        message = formatMessage(events)
+        logger.info(message)
+        try:
+            SCOPES = [
+                    "https://www.googleapis.com/auth/gmail.send"
+                ]
+            # flow = InstalledAppFlow.from_client_secrets_file(
+            #             'gmail_creds.json', SCOPES)
+            # creds = flow.run_local_server(port=0)
+            # service = build_service(SCOPES=SCOPES)
+            creds = None
+        # The file token.json stores the user's access and refresh tokens, and is
+        # created automatically when the authorization flow completes for the first
+        # time.
+            if os.path.exists("token.json"):
+                creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+        # If there are no (valid) credentials available, let the user log in.
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        "gmail_creds.json", SCOPES
+                    )
+                    creds = flow.run_local_server(port=0)
+                    # Save the credentials for the next run
+                    with open("token.json", "w") as token:
+                        token.write(creds.to_json())
+            service = build("gmail", "v1", credentials=creds)
+            message = MIMEText(message)
+            message['to'] = 'alexjenny97@gmail.com'
+            message['subject'] = 'Email Subject'
+            create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+            try:
+                message = (service.users().messages().send(userId="me", body=create_message).execute())
+                print(F'sent message to {message} Message Id: {message["id"]}')
+            except HTTPError as error:
+                print(F'An error occurred: {error}')
+                message = None
+        except Exception as e:
+            logger.error(f"Error sending email due to {e}")
 
-    SCOPES = [
-            "https://www.googleapis.com/auth/gmail.send"
-        ]
-    # flow = InstalledAppFlow.from_client_secrets_file(
-                # 'gmail_creds.json', SCOPES)
-    # creds = flow.run_local_server(port=0)
-    # service = build('gmail', 'v1', credentials=creds)
-
-    message = MIMEText(message_text)
-    message['to'] = config['email_config']['to']
-    message['subject'] = config['email_config']['subject']
-    create_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
-
-    try:
-        # message = (service.users().messages().send(userId="me", body=create_message).execute())
-        logger.info(f"Attempting to store email text.")
-        with open ('message_sent.json', 'w') as file:
-            json.dumps(message_text, indent=4)
-        # print(f'sent message to {message} Message Id: {message["id"]}')
-        logger.info(f"Successfully stored message text.")
-    except HTTPError as error:
-        logger.info(f'An error occurred storing message text: {error}')
-        message = None
+    
 
 
 def main():
