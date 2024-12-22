@@ -1,27 +1,14 @@
 # Project: Concerts Near Me
+# This project is currently on hold. Priotities have shifted and the main goal (create a working web scraper that connects to a free API to keep skills sharp) has been accomplished. 
 
-## Problem Summary: 
-Many venues and shows happening around Denver make it difficult to easily find relevent event data such as:
-- who is playing
-- when the show is
-- where the show is
-- the tour poster
-- a link for tickets
+## Project Summary: 
+Denver is full of fun events! Mac & cheese celebrations, concerts, local festivals, parades, and more happen all over Denver and the surrounding cities. To make the process of finding and comparing events more effiecnt, I created a process to web scrape certain sites (starting with Fiddler's Green for scope management), that emails the events to my personal gmail email. This is done by using Selenium & Python to get the web data and Gmail API to send the email. With the foundataion set, the next step is to gather and format data from the Denver city website to add diversity to the events given. 
 
-Getting this data via scrolling multiple sites & emails takes much more time than reading one personalized email. There should be a script to run that will send the formatted details as an email. 
+The data is given in the form:
 
-## Solution MVP: 
-1. One venue's data will be a proof of concept.
-     - This will set up Selenium, webscraping and connecting to the Gmail API.
-       
-3. Data must include date, time, venue and artist.
-     - Other attributes are acceptable, this is the bare minimum.
-     - **Final MVP includes: date, time, venue, artist, ticket link and a link to the tour poster**
-       
-4. The email must not send duplicate events for consecuitive emails.
-      - Repeating events is not a scaleable solution as the number of venues increases.
-#### Note: If no new events, no email will be sent
-
+ARTIST is playing at VENUE at SHOW_TIME on SHOW_DATE
+LINK TO POSTER
+LINK TO EVENT
 
 ## Files:
 previous_events.json
@@ -48,20 +35,14 @@ gmail_creds.json
               }
         }
 
-
-
-
-
-## Current Status:
-- Program curently gets info from Fiddler's Green Ampitheater and **if not commented out** adds the events to the "previous_events.json" file, then emails the events. Below is a snapshot of an email sent.
+## Example of current email. 
   <img width="722" alt="image" src="https://github.com/user-attachments/assets/f654d4a1-2ec5-40ef-9078-cd7fddaa0af6">
 
-- Program stores Gmail credentials and uses them in subsequent runs so the user does not need to allow the program access every run. 
-
 ## Possible Next Steps:
-1. Next venue: Mission Ballroom.
+1. Next site: Denver city website.
 2. Add price of general admission ticket into the email.
-3. Connect to Spotify API to bold small artists that are known and might be missed. 
+3. Connect to Spotify API to bold small artists that are known and might be missed.
+4. Analyze the venues to see if prices rise closer to the event date.
 
 
 
